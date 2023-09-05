@@ -3,7 +3,8 @@ import requests
 from PIL import Image
 import cv2
 import numpy as np
-from sanic.response import file
+from sanic.response import html
+from base64 import b64encode
 
 
 
@@ -47,8 +48,8 @@ async def test(request):
         image_data.append(image)
     # concatenate ver
     concatenated_image = cv2.vconcat(image_data)
-    # finally write the image in a file and serve the file
-    cv2.imwrite("generatedimage.jpg", concatenated_image)
-    return await file("generatedimage.jpg")
- 
- 
+
+    # finally encode the image to base64 and pass the uri
+    retval, buffer = cv2.imencode('.jpg', concatenated_image)
+    uri = "data:%s;base64,%s" % ('image/jpeg', b64encode(buffer).decode('ascii'))
+    return html(f'<img src=" {uri} " >')
